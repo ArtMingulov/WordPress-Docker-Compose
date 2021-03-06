@@ -1,5 +1,11 @@
 version: "3"
 
+x-mysql-environment: &mysql-environment
+    MYSQL_USER: ${MYSQL_USER}
+    MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    MYSQL_DATABASE: ${MYSQL_DATABASE}
+    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+
 services:
     nginx:
         build:
@@ -11,13 +17,18 @@ services:
     mysql:
         image: mariadb:10.5-focal
         environment:
-            MYSQL_USER: ${MYSQL_USER}
-            MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-            MYSQL_DATABASE: ${MYSQL_DATABASE}
-            MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+            <<: *mysql-environment
+        volumes:
+            - db-data:/var/lib/mysql
         networks:
             docker-network:
                 ipv4_address: 172.27.0.4
+        healthcheck:
+            test: [ "CMD", "mysqladmin", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}", "ping" ]
+            interval: 15s
+            timeout: 3s
+            retries: 3
+            start_period: 15s
 
     php:
         build:
@@ -25,12 +36,18 @@ services:
             dockerfile: Dockerfile
         volumes:
             - php-data:/var/www
+        environment:
+            <<: *mysql-environment
         networks:
             docker-network:
                 ipv4_address: 172.27.0.3
+        depends_on:
+            mysql:
+                condition: service_healthy
 
 volumes:
     php-data:
+    db-data:
 
 networks:
     docker-network:
