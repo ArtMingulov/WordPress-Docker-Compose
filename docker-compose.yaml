@@ -1,35 +1,35 @@
 version: "3"
 
-services: 
-    nginx: 
+services:
+    nginx:
         build:
             context: ./nginx
             dockerfile: Dockerfile
-        networks: 
+        networks:
             docker-network:
                 ipv4_address: 172.27.0.2
     mysql:
         image: mariadb:10.5-focal
-        environment: 
+        environment:
             MYSQL_USER: ${MYSQL_USER}
             MYSQL_PASSWORD: ${MYSQL_PASSWORD}
             MYSQL_DATABASE: ${MYSQL_DATABASE}
             MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-        networks: 
+        networks:
             docker-network:
                 ipv4_address: 172.27.0.4
-            
+
     php:
         build:
             context: ./php
             dockerfile: Dockerfile
-        volumes: 
+        volumes:
             - php-data:/var/www
-        networks: 
+        networks:
             docker-network:
                 ipv4_address: 172.27.0.3
 
-volumes: 
+volumes:
     php-data:
 
 networks:
@@ -37,5 +37,5 @@ networks:
         driver: bridge
         ipam:
             driver: default
-            config: 
+            config:
                 - subnet: 172.27.0.0/24
